@@ -20,54 +20,314 @@ using namespace std;
 }*/
 
 void forUDP(unsigned char pkt[],int length){
+    
+    FILE *fp;
+    fp = fopen("UDP_packets.txt","a");
 
-    printf("\n\nUser Datagram protocol ....\n\n");
+    unsigned char array[16];
+    int j=-1;
+    int u=0;
+    
+    for(int i=16;i<length;i++){
+                    
+            if(u%16==8){
+                //printf(" --  ");
+                fprintf(fp," --  ");
+            }
+            if(u%16==0 && i!=16){
+                fprintf(fp,"\t");
+                
+                
+                for(int k=0;k<16;k++){
+                
+                    unsigned int temp = array[k];
+                    if(isprint(temp))fprintf(fp,"%c",array[k]);
+                    else fprintf(fp,".");
+                    u=0;
+                }
+                fprintf(fp,"\n");
+                j=-1;
+            }
+            
+            fprintf(fp,"%.02X ",pkt[i]&0xff);
+            j++;
+            array[j]=(unsigned char)pkt[i]&0xff;
+            u++;
+    }
+    
+    if(u<16 && u!=0){
+       if(u<=8){
+            for(int i=3*u-1;i<=56;i++){
+                fprintf(fp," ");
+            }
+       }
+       else{
+            for(int i=3*u-1+6;i<=56;i++){
+                fprintf(fp," ");
+            }  
+       }
+        
+        for(int i=0;i<=j;i++){
+                            
+                    unsigned int temp = array[i];
+                    if(isprint(temp))fprintf(fp,"%c",array[i]);
+                    else fprintf(fp,".");
+        }
+    }
+    
+    printf("\n");
+    printf("\n\nTPv4........\n\n");
+    fprintf(fp,"\n\nTPv4........\n\n");
+    printf("\tVersion : ----%d\n",OneByteLeftPortionConvertToInteger(pkt[30]));
+    fprintf(fp,"\tVersion : ----%d\n",OneByteLeftPortionConvertToInteger(pkt[30]));
+    printf("\tHeader Length : ----%d\n",OneByteRightPortionConvertToInteger(pkt[30]));
+    fprintf(fp,"\tHeader Length : ----%d\n",OneByteRightPortionConvertToInteger(pkt[30]));
+    printf("\tDifferentiated Services field : ----0x%.02x\n",pkt[31]&0xff);
+    fprintf(fp,"\tDifferentiated Services field : ----0x%.02x\n",pkt[31]&0xff);
+
+    unsigned char len[2];
+    len[0]=(unsigned char)pkt[32];
+    len[1]=(unsigned char)pkt[33];
+    printf("\tTotal length : ----%d\n",Convert2byteToIntegerLeftToRight(len));
+    fprintf(fp,"\tTotal length : ----%d\n",Convert2byteToIntegerLeftToRight(len));
+
+    printf("\tIdentification : ----0x%.02x%.02x \n",pkt[34]&0xff,pkt[35]&0xff);
+    fprintf(fp,"\tIdentification : ----0x%.02x%.02x \n",pkt[34]&0xff,pkt[35]&0xff);
+    printf("\tFlags : ----0x%.02x\n",pkt[36]);
+    fprintf(fp,"\tFlags : ----0x%.02x\n",pkt[36]);
 
     unsigned char temp[2];
-    temp[0]=(unsigned char)pkt[50];
-    temp[1]=(unsigned char)pkt[51];
-    printf("\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp));
+    temp[0]=(unsigned char)pkt[36];
+    temp[1]=(unsigned char)pkt[37];
+    printf("\tFragment Offset : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
+    fprintf(fp,"\tFragment Offset : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
 
+    printf("\tTime to Live : ----%d\n",Convert1byteToInteger(pkt[38]));
+    fprintf(fp,"\tTime to Live : ----%d\n",Convert1byteToInteger(pkt[38]));
+    
+    unsigned int protocol = Convert1byteToInteger(pkt[39]);
+    printf("\tProtocol: ----%d\n",protocol);
+    fprintf(fp,"\tProtocol: ----%d\n",protocol);
+
+    printf("\tHeader checksum: ----0x%.02x%.02x\n",pkt[40]&0xff,pkt[41]&0xff);
+    fprintf(fp,"\tHeader checksum: ----0x%.02x%.02x\n",pkt[40]&0xff,pkt[41]&0xff);
+    
+    printf("\tSource: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[42]),Convert1byteToInteger(pkt[43]),Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]));
+    fprintf(fp,"\tSource: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[42]),Convert1byteToInteger(pkt[43]),Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]));
+    
+    
+    printf("\tDestination: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]),Convert1byteToInteger(pkt[48]),Convert1byteToInteger(pkt[49]));
+    fprintf(fp,"\tDestination: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]),Convert1byteToInteger(pkt[48]),Convert1byteToInteger(pkt[49]));
+       
+    printf("\n\nUser Datagram protocol ....\n\n");
+    fprintf(fp,"\n\nUser Datagram protocol ....\n\n");
+    
+   
+    unsigned char temp4[2];
+    temp4[0]=(unsigned char)pkt[50];
+    temp4[1]=(unsigned char)pkt[51];
+    printf("\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp4));
+    fprintf(fp,"\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp4));
+    
     unsigned char temp1[2];
     temp1[0]=(unsigned char)pkt[52];
     temp1[1]=(unsigned char)pkt[53];
     printf("\tDestination port: ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
-
+    fprintf(fp,"\tDestination port: ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
+     
     unsigned char temp2[2];
     temp2[0]=(unsigned char)pkt[54];
     temp2[1]=(unsigned char)pkt[55];
     printf("\tLength: ----%d\n",Convert2byteToIntegerLeftToRight(temp2));
-
+    fprintf(fp,"\tLength: ----%d\n",Convert2byteToIntegerLeftToRight(temp2));
+    
     unsigned char temp3[2];
     temp3[0]=(unsigned char)pkt[56];
     temp3[1]=(unsigned char)pkt[57];
     printf("\tChecksum: ----%d\n",Convert2byteToIntegerLeftToRight(temp3));
+    fprintf(fp,"\tChecksum: ----%d\n",Convert2byteToIntegerLeftToRight(temp3));
 
-    int u=0;
-     printf("Data...\n");
+     u=0;
+     printf("\nData...\n");
+     fprintf(fp,"\nData...\n");
+     j=-1;
+     unsigned char array1[16];
+     
     for(int i=58;i<length;i++){
-
-        if(u%16==0)printf("\n");
-        printf("%0.02x ",pkt[i]&0xff);
-        u++;
+                    
+            if(u%16==8){
+                //printf(" --  ");
+                fprintf(fp," --  ");
+            }
+            if(u%16==0 && i!=58){
+                fprintf(fp,"\t");
+                
+                
+                for(int k=0;k<16;k++){
+                
+                    unsigned int temp = array1[k];
+                    if(isprint(temp))fprintf(fp,"%c",array1[k]);
+                    else fprintf(fp,".");
+                    
+                    u=0;
+                }
+                fprintf(fp,"\n");
+                j=-1;
+                
+            }
+            
+            fprintf(fp,"%.02X ",pkt[i]&0xff);
+            j++;
+            array1[j]=(unsigned char)pkt[i]&0xff;
+            u++;
     }
+    
+    
+    if(u<16 && u!=0){
+       if(u<=8){
+            for(int i=3*u-1;i<=56;i++){
+                fprintf(fp," ");
+            }
+       }
+       else{
+            for(int i=3*u-1+6;i<=56;i++){
+                fprintf(fp," ");
+            }  
+       }
+        for(int i=0;i<=j;i++){
+                            
+                    unsigned int temp = array1[i];
+                    if(isprint(temp))fprintf(fp,"%c",array1[i]);
+                    else fprintf(fp,".");
+        }
+    }
+    
+    
+    
     printf("\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fclose(fp);
     
 }
 void forTCP(unsigned char pkt[],int length){
+    
+    FILE *fp;
+    fp = fopen("TCP_packets.txt","a");
+    
+    unsigned char array[16];
+    int j=-1;
+    int u=0;
+    
+    for(int i=16;i<length;i++){
+                    
+            if(u%16==8){
+                //printf(" --  ");
+                fprintf(fp," --  ");
+            }
+            if(u%16==0 && i!=16){
+                fprintf(fp,"\t");
+                
+                
+                for(int k=0;k<16;k++){
+                
+                    unsigned int temp = array[k];
+                    if(isprint(temp))fprintf(fp,"%c",array[k]);
+                    else fprintf(fp,".");
+                    u=0;
+                }
+                fprintf(fp,"\n");
+                j=-1;
+            }
+            
+            fprintf(fp,"%.02X ",pkt[i]&0xff);
+            j++;
+            array[j]=(unsigned char)pkt[i]&0xff;
+            u++;
+    }
+    
+    if(u<16 && u!=0){
+       if(u<=8){
+            for(int i=3*u-1;i<=56;i++){
+                fprintf(fp," ");
+            }
+       }
+       else{
+            for(int i=3*u-1+6;i<=56;i++){
+                fprintf(fp," ");
+            }  
+       }
+        for(int i=0;i<=j;i++){
+                            
+                    unsigned int temp = array[i];
+                    if(isprint(temp))fprintf(fp,"%c",array[i]);
+                    else fprintf(fp,".");
+        }
+    }
+    
+    printf("\n");
+    
+    
+    printf("\n\nTPv4........\n\n");
+    fprintf(fp,"\n\nTPv4........\n\n");
+    printf("\tVersion : ----%d\n",OneByteLeftPortionConvertToInteger(pkt[30]));
+    fprintf(fp,"\tVersion : ----%d\n",OneByteLeftPortionConvertToInteger(pkt[30]));
+    printf("\tHeader Length : ----%d\n",OneByteRightPortionConvertToInteger(pkt[30]));
+    fprintf(fp,"\tHeader Length : ----%d\n",OneByteRightPortionConvertToInteger(pkt[30]));
+    printf("\tDifferentiated Services field : ----0x%.02x\n",pkt[31]&0xff);
+    fprintf(fp,"\tDifferentiated Services field : ----0x%.02x\n",pkt[31]&0xff);
 
-    printf("\n\nTransmission Control Protocol ....\n\n");
+    unsigned char len[2];
+    len[0]=(unsigned char)pkt[32];
+    len[1]=(unsigned char)pkt[33];
+    printf("\tTotal length : ----%d\n",Convert2byteToIntegerLeftToRight(len));
+    fprintf(fp,"\tTotal length : ----%d\n",Convert2byteToIntegerLeftToRight(len));
+
+    printf("\tIdentification : ----0x%.02x%.02x \n",pkt[34]&0xff,pkt[35]&0xff);
+    fprintf(fp,"\tIdentification : ----0x%.02x%.02x \n",pkt[34]&0xff,pkt[35]&0xff);
+    printf("\tFlags : ----0x%.02x\n",pkt[36]);
+    fprintf(fp,"\tFlags : ----0x%.02x\n",pkt[36]);
 
     unsigned char temp[2];
-    temp[0]=(unsigned char)pkt[50];
-    temp[1]=(unsigned char)pkt[51];
-    printf("\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp));
+    temp[0]=(unsigned char)pkt[36];
+    temp[1]=(unsigned char)pkt[37];
+    printf("\tFragment Offset : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
+    fprintf(fp,"\tFragment Offset : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
 
+    printf("\tTime to Live : ----%d\n",Convert1byteToInteger(pkt[38]));
+    fprintf(fp,"\tTime to Live : ----%d\n",Convert1byteToInteger(pkt[38]));
+    
+    unsigned int protocol = Convert1byteToInteger(pkt[39]);
+    printf("\tProtocol: ----%d\n",protocol);
+    fprintf(fp,"\tProtocol: ----%d\n",protocol);
+
+    printf("\tHeader checksum: ----0x%.02x%.02x\n",pkt[40]&0xff,pkt[41]&0xff);
+    fprintf(fp,"\tHeader checksum: ----0x%.02x%.02x\n",pkt[40]&0xff,pkt[41]&0xff);
+    
+    printf("\tSource: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[42]),Convert1byteToInteger(pkt[43]),Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]));
+    fprintf(fp,"\tSource: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[42]),Convert1byteToInteger(pkt[43]),Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]));
+    
+    
+    printf("\tDestination: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]),Convert1byteToInteger(pkt[48]),Convert1byteToInteger(pkt[49]));
+    fprintf(fp,"\tDestination: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]),Convert1byteToInteger(pkt[48]),Convert1byteToInteger(pkt[49]));
+    
+        
+    printf("\n\nTransmission Control Protocol ....\n\n");
+    fprintf(fp,"\n\nTransmission Control Protocol ....\n\n");
+
+    unsigned char temp6[2];
+    temp6[0]=(unsigned char)pkt[50];
+    temp6[1]=(unsigned char)pkt[51];
+    printf("\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp6));
+    fprintf(fp,"\tSource port: ----%d\n",Convert2byteToIntegerLeftToRight(temp6));
+    
     unsigned char temp1[2];
     temp1[0]=(unsigned char)pkt[52];
     temp1[1]=(unsigned char)pkt[53];
     printf("\tDestination port: ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
-
+    fprintf(fp,"\tDestination port: ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
+    
     //printf("Sequence Number: "Convert4byteToIntegerLeftToRight[]);
     unsigned char temp2[4];
     temp2[0]=(unsigned char)pkt[58];
@@ -75,79 +335,117 @@ void forTCP(unsigned char pkt[],int length){
     temp2[2]=(unsigned char)pkt[60];
     temp2[3]=(unsigned char)pkt[61];
     printf("\tAcknowledge number: ----%d\n",Convert4byteToIntegerLeftToRight(temp2));
+    fprintf(fp,"\tAcknowledge number: ----%d\n",Convert4byteToIntegerLeftToRight(temp2));
 
     printf("\tHeader length: ----%d bytes(%d)\n",4*OneByteLeftPortionConvertToInteger(pkt[62]),
            OneByteLeftPortionConvertToInteger(pkt[62]));
+           
+    fprintf(fp,"\tHeader length: ----%d bytes(%d)\n",4*OneByteLeftPortionConvertToInteger(pkt[62]),
+           OneByteLeftPortionConvertToInteger(pkt[62]));
 
     printf("\tFlags: ----%.02x\n",pkt[63]&0xff);
-
+    fprintf(fp,"\tFlags: ----%.02x\n",pkt[63]&0xff);
+    
     unsigned char temp3[2];
     temp3[0]=(unsigned char)pkt[64];
     temp3[1]=(unsigned char)pkt[65];
     printf("\twindow size value: ----%d\n",Convert2byteToIntegerLeftToRight(temp3));
+    fprintf(fp,"\twindow size value: ----%d\n",Convert2byteToIntegerLeftToRight(temp3));
 
     printf("\tCheckSum: ----%.02x%.02x\n",pkt[66]&0xff,pkt[67]&0xff);
-
+    fprintf(fp,"\tCheckSum: ----%.02x%.02x\n",pkt[66]&0xff,pkt[67]&0xff);
+    
     unsigned char temp4[2];
     temp4[0]=(unsigned char)pkt[68];
     temp4[1]=(unsigned char)pkt[69];
     printf("\tUrgent: ----%d\n",Convert2byteToIntegerLeftToRight(temp4));
+    fprintf(fp,"\tUrgent: ----%d\n",Convert2byteToIntegerLeftToRight(temp4));
 
-
-    printf("\tOptions .........\n");
+    //printf("\tOptions .........\n");
+    fprintf(fp,"\tOptions .........\n");
 
     unsigned char temp5[4];
     temp5[0]=(unsigned char)pkt[70];
     temp5[1]=(unsigned char)pkt[71];
     temp5[2]=(unsigned char)pkt[72];
     temp5[3]=(unsigned char)pkt[73];
-    printf("\tMaximum segment Size: ----%d\n",Convert4byteToIntegerLeftToRight(temp5));
-
+    //printf("\tMaximum segment Size: ----%d\n",Convert4byteToIntegerLeftToRight(temp5));
+    fprintf(fp,"\tMaximum segment Size: ----%d\n",Convert4byteToIntegerLeftToRight(temp5));
+    
     printf("\tTCP option.....\n   \t\tkind: (%d)\n",Convert1byteToInteger(pkt[74]));
+    fprintf(fp,"\tTCP option.....\n   \t\tkind: (%d)\n",Convert1byteToInteger(pkt[74]));
     printf("\tTCP option.....\n   \t\tkind: (%d)\n",Convert1byteToInteger(pkt[75]));
+    fprintf(fp,"\tTCP option.....\n   \t\tkind: (%d)\n",Convert1byteToInteger(pkt[75]));
     printf("\tTCP option.....\n   \t\tkind:  SACK Permitted (%d)\n   \t\tLength: (%d)",
            Convert1byteToInteger(pkt[76]),Convert1byteToInteger(pkt[77]));
+    fprintf(fp,"\tTCP option.....\n   \t\tkind:  SACK Permitted (%d)\n   \t\tLength: (%d)",
+           Convert1byteToInteger(pkt[76]),Convert1byteToInteger(pkt[77]));
 
-     int u=0;
+     //int u=0;
      printf("\nData...\n");
+     fprintf(fp,"\nData...\n");
+     j=-1;
+     unsigned char array1[16];
+     u=0;
     for(int i=78;i<length;i++){
-        
-        if(u%16==0)printf("\n");
-        printf("%0.02x ",pkt[i]&0xff);
-        
-        u++;
+                    
+            if(u%16==8){
+                //printf(" --  ");
+                fprintf(fp," --  ");
+            }
+            if(u%16==0 && i!=78){
+                fprintf(fp,"\t");
+                
+                
+                for(int k=0;k<16;k++){
+                
+                    unsigned int temp = array1[k];
+                    if(isprint(temp))fprintf(fp,"%c",array1[k]);
+                    else fprintf(fp,".");
+                    u=0;
+                }
+                fprintf(fp,"\n");
+                j=-1;
+                
+            }
+            
+            fprintf(fp,"%.02X ",pkt[i]&0xff);
+            j++;
+            array1[j]=(unsigned char)pkt[i]&0xff;
+            u++;
     }
+    
+    if(u<16 && u!=0){
+       if(u<=8){
+            for(int i=3*u-1;i<=56;i++){
+                fprintf(fp," ");
+            }
+       }
+       else{
+            for(int i=3*u-1+6;i<=56;i++){
+                fprintf(fp," ");
+            }  
+       } 
+       
+        for(int i=0;i<=j;i++){
+                            
+                    unsigned int temp = array1[i];
+                    if(isprint(temp))fprintf(fp,"%c",array1[i]);
+                    else fprintf(fp,".");
+        }
+    }
+    
     printf("\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fclose(fp);
+    
 }
+
 void forIPv4(unsigned char pkt[],int frameLength){
 
-    printf("\n\nTPv4........\n\n");
-    printf("\tVersion : ----%d\n",OneByteLeftPortionConvertToInteger(pkt[30]));
-    printf("\tHeader Length : ----%d\n",OneByteRightPortionConvertToInteger(pkt[30]));
-    printf("\tDifferentiated Services field : ----0x%.02x\n",pkt[31]&0xff);
-
-    unsigned char len[2];
-    len[0]=(unsigned char)pkt[32];
-    len[1]=(unsigned char)pkt[33];
-    printf("\tTotal length : ----%d\n",Convert2byteToIntegerLeftToRight(len));
-
-    printf("\tIdentification : ----0x%.02x%.02x \n",pkt[34]&0xff,pkt[35]&0xff);
-    printf("\tFlags : ----0x%.02x\n",pkt[36]);
-
-    unsigned char temp[2];
-    temp[0]=(unsigned char)pkt[36];
-    temp[1]=(unsigned char)pkt[37];
-    printf("\tFragment Offset : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
-
-    printf("\tTime to Live : ----%d\n",Convert1byteToInteger(pkt[38]));
-
     unsigned int protocol = Convert1byteToInteger(pkt[39]);
-    printf("\tProtocol: ----%d\n",protocol);
-
-    printf("\tHeader checksum: ----0x%.02x%.02x\n",pkt[40]&0xff,pkt[41]&0xff);
-    printf("\tSource: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[42]),Convert1byteToInteger(pkt[43]),Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]));
-
-    printf("\tDestination: ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]),Convert1byteToInteger(pkt[48]),Convert1byteToInteger(pkt[49]));
 
     if(protocol==17){
         forUDP(pkt,frameLength);
@@ -159,22 +457,30 @@ void forIPv4(unsigned char pkt[],int frameLength){
 }
 
 void forARP(unsigned char pkt[],int length){
-
+    
+    FILE *fp;
+    fp = fopen("ARP_packets.txt","a");
+    
     printf("\n\nARP.........\n\n");
+    fprintf(fp,"\n\nARP.........\n\n");
 
     unsigned char temp[2];
     temp[0]=(unsigned char)pkt[30];
     temp[1]=(unsigned char)pkt[31];
     printf("\tHardWare Type : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
+    fprintf(fp,"\tHardWare Type : ----%d\n",Convert2byteToIntegerLeftToRight(temp));
 
     unsigned char temp1[2];
     temp1[0]=(unsigned char)pkt[32];
     temp1[1]=(unsigned char)pkt[33];
     printf("\tProtocol Type : ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
+    fprintf(fp,"\tProtocol Type : ----%d\n",Convert2byteToIntegerLeftToRight(temp1));
 
     printf("\tHardWare Type : ----%d\n",Convert1byteToInteger(pkt[34]));
-
+    fprintf(fp,"\tHardWare Type : ----%d\n",Convert1byteToInteger(pkt[34]));
+    
     printf("\tProtocol Type : ----%d\n",Convert1byteToInteger(pkt[35]));
+    fprintf(fp,"\tProtocol Type : ----%d\n",Convert1byteToInteger(pkt[35]));
 
     unsigned char temp2[2];
     temp2[0]=(unsigned char)pkt[36];
@@ -188,22 +494,81 @@ void forARP(unsigned char pkt[],int length){
 
     printf("\tSender MAC address: ----%.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",pkt[38]&0xff,
            pkt[39]&0xff,pkt[40]&0xff,pkt[41]&0xff,pkt[42]&0xff,pkt[43]&0xff);
+    fprintf(fp,"\tSender MAC address: ----%.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",pkt[38]&0xff,
+           pkt[39]&0xff,pkt[40]&0xff,pkt[41]&0xff,pkt[42]&0xff,pkt[43]&0xff);
+           
     printf("\tSender IP address : ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]),Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]));
-
+    fprintf(fp,"\tSender IP address : ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[44]),Convert1byteToInteger(pkt[45]),Convert1byteToInteger(pkt[46]),Convert1byteToInteger(pkt[47]));
+    
     printf("\tTarget MAC address: ----%.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",pkt[48]&0xff,
            pkt[49]&0xff,pkt[50]&0xff,pkt[51]&0xff,pkt[52]&0xff,pkt[53]&0xff);
+    fprintf(fp,"\tTarget MAC address: ----%.02x:%.02x:%.02x:%.02x:%.02x:%.02x\n",pkt[48]&0xff,
+           pkt[49]&0xff,pkt[50]&0xff,pkt[51]&0xff,pkt[52]&0xff,pkt[53]&0xff);
+           
     printf("\tTerget IP address : ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[54]),Convert1byteToInteger(pkt[55]),Convert1byteToInteger(pkt[56]),Convert1byteToInteger(pkt[57]));
+    fprintf(fp,"\tTerget IP address : ----%d.%d.%d.%d\n",Convert1byteToInteger(pkt[54]),Convert1byteToInteger(pkt[55]),Convert1byteToInteger(pkt[56]),Convert1byteToInteger(pkt[57]));
 
     printf("\tPadding.........\n\n");
+    unsigned char array[16];
      int u=0;
-     //printf("Data...\n");
-
+     printf("\nData...\n");
+     fprintf(fp,"\nData...\n");
+     int j=-1;
+     
     for(int i=59;i<length;i++){
-
-        if(u%16==0)printf("\n");
-        printf("%0.02x ",pkt[i]&0xff);
-        u++;
+                    
+            if(u%16==8){
+                //printf(" --  ");
+                fprintf(fp," --  ");
+            }
+            if(u%16==0 && i!=59){
+                fprintf(fp,"\t");
+                
+                
+                for(int k=0;k<16;k++){
+                
+                    unsigned int temp = array[k];
+                    if(isprint(temp))fprintf(fp,"%c",array[k]);
+                    else fprintf(fp,".");
+                    u=0;
+                }
+                fprintf(fp,"\n");
+                j=-1;
+                
+            }
+            
+            fprintf(fp,"%.02X ",pkt[i]&0xff);
+            j++;
+            array[j]=(unsigned char)pkt[i]&0xff;
+            u++;
     }
+    
+    if(u<16 && u!=0){
+       if(u<=8){
+            for(int i=3*u-1;i<=56;i++){
+                fprintf(fp," ");
+            }
+       }
+       else{
+            for(int i=3*u-1+6;i<=56;i++){
+                fprintf(fp," ");
+            }  
+       }
+        /*for(int i=length-u;i<length;i++){
+            if(isprint(pkt[i]))fprintf(fp,"%c",(unsigned char)pkt[i]0xff);
+        }*/
+        for(int i=0;i<=j;i++){
+                            
+                    unsigned int temp = array[i];
+                    if(isprint(temp))fprintf(fp,"%c",array[i]);
+                    else fprintf(fp,".");
+        }
+    }
+    printf("\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fprintf(fp,"\n");
+    fclose(fp);
 }
 
 void printPacket(unsigned char pkt[],int framenumber,int frameLength){
